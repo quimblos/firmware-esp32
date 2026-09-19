@@ -24,7 +24,7 @@ namespace driver {
                 rmt_encoder_t *copy_encoder;
                 int state;
                 rmt_symbol_word_t reset_code;
-            }* a;
+            };
 
         protected:
         
@@ -35,6 +35,9 @@ namespace driver {
             rmt_encoder_handle_t encoder = NULL;
 
             uint16_t pixels;
+
+        public:
+        
             uint8_t* data = nullptr;
 
         public:

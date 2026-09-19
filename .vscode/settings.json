@@ -31,7 +31,7 @@
   "clangd.arguments": [
     "--background-index",
     "--query-driver=**",
-    "--compile-commands-dir=build"
+    "--compile-commands-dir=/home/aboud/git/firmware-esp32/build"
   ],
   "idf.flashType": "UART"
 }
