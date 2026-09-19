@@ -1,6 +1,5 @@
 #pragma once
 
-#include <algorithm>
 #include <cstdint>
 #include <vector>
 
@@ -16,27 +15,31 @@ namespace voxel {
             G,
             B
         } channel;
-        uint16_t framelen;
-        std::vector<uint8_t> wave;
+        struct Frame {
+            uint8_t val;
+            uint8_t dur;
+        };
+        std::vector<Frame> signal;
     };
 
-    struct Animation {
+    struct ImpulseAnimation {
         Impulse impulse;
         std::vector<uint16_t> voxels;
         uint8_t t = 0;
+        uint8_t ti = 0;
         
-        Animation(Impulse& impulse, const std::vector<uint16_t>& voxels):
+        ImpulseAnimation(Impulse& impulse, const std::vector<uint16_t>& voxels):
             impulse(impulse),
             voxels(voxels) {}
 
         // Returns true if done
         bool tick(Driver& driver);
+        void clear(Driver& driver);
     };
 
     class ImpulseAnimator {
-        
         Driver& driver;
-        std::vector<Animation> animations;
+        std::vector<ImpulseAnimation> animations;
 
         public:
 

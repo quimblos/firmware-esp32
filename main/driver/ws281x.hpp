@@ -1,6 +1,8 @@
 #pragma once
 
+#include <cstdio>
 #include <stdint.h>
+#include <string>
 #include "esp_err.h"
 #include "esp_log.h"
 #include "freertos/idf_additions.h"
@@ -11,6 +13,7 @@
 #include "driver/rmt_encoder.h"
 
 #include "../quimblos/driver.hpp"
+#include "util/color.hpp"
 
 namespace driver {
 
@@ -35,6 +38,14 @@ namespace driver {
             rmt_encoder_handle_t encoder = NULL;
 
             uint16_t pixels;
+
+            rmt_transmit_config_t tx_config = {
+                .loop_count = 0,
+                .flags = {
+                    .eot_level = 0,
+                    .queue_nonblocking = 0
+                }
+            };
 
         public:
         
@@ -86,13 +97,7 @@ namespace driver {
                 uint32_t tick = 0;
 
                 ESP_LOGI(TAG, "Running test pattern on main task...");
-                rmt_transmit_config_t tx_config = {
-                    .loop_count = 0,
-                    .flags = {
-                        .eot_level = 0,
-                        .queue_nonblocking = 0
-                    }
-                };
+                
                 while (1) {
                     for (uint16_t i = pixels-1; i > 0; i--) {
                         uint16_t p1 = i*3;
@@ -119,10 +124,27 @@ namespace driver {
                     tick++;
 
                     // Flush RGB values to LEDs
-                    ESP_ERROR_CHECK(rmt_transmit(chan, encoder, data, pixels*3, &tx_config));
-                    ESP_ERROR_CHECK(rmt_tx_wait_all_done(chan, portMAX_DELAY));
+                    flush();
                     vTaskDelay(pdMS_TO_TICKS(100));
                 }
+            }
+
+            void set(uint16_t i, const RGB& color) {
+                data[i*3+0] = color.g;
+                data[i*3+1] = color.r;
+                data[i*3+2] = color.b;
+            }
+
+            void flush() {
+
+                std::string data_str;
+                for (int i = 0; i < pixels*3; i++) {
+                    data_str += std::to_string(data[i]) + " ";
+                }
+                ESP_LOGI(TAG, "data: %s", data_str.c_str());
+
+                ESP_ERROR_CHECK(rmt_transmit(chan, encoder, data, pixels*3, &tx_config));
+                ESP_ERROR_CHECK(rmt_tx_wait_all_done(chan, portMAX_DELAY));
             }
 
         private:

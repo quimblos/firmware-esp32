@@ -3,6 +3,8 @@
 #include <cstdint>
 #include <vector>
 
+#include "util/color.hpp"
+
 namespace voxel {
 
     struct XY {
@@ -13,11 +15,7 @@ namespace voxel {
     struct Voxel {
         uint16_t index; // 0xFFFF -> unassigned
 
-        struct Data {
-            uint8_t r = 0;
-            uint8_t g = 0;
-            uint8_t b = 0;
-        } data;
+        RGB data;
 
         Voxel(uint16_t index = 0xFFFF):
             index(index) {}

@@ -16,14 +16,17 @@ static const char *TAG = "example";
 
 extern "C" void app_main(void)
 {
-    /* Drivers */
+    /* Drivers
+       Static storage duration: returning from app_main() deletes the main task and
+       destroys its stack frame, but background tasks and callbacks (the "voxel"
+       task, Wi-Fi/BLE handlers, the web server) keep pointers to these objects. */
 
-    auto nvs = driver::NVS();
-    auto wifi = driver::WiFi(nvs);
-    auto blufi = driver::BluFi(wifi);
-    auto websocket = driver::WebSocket(wifi);
+    static auto nvs = driver::NVS();
+    static auto wifi = driver::WiFi(nvs);
+    static auto blufi = driver::BluFi(wifi);
+    static auto websocket = driver::WebSocket(wifi);
     
-    auto voxel = voxel::Driver((gpio_num_t) VOXEL_GPIO, VOXEL_GRID_W, VOXEL_GRID_H);
+    static auto voxel = voxel::Driver((gpio_num_t) VOXEL_GPIO, VOXEL_GRID_W, VOXEL_GRID_H);
 
     /* Engine */
 
@@ -56,11 +59,13 @@ extern "C" void app_main(void)
         {2,0},{2,1},{2,2},
     });
 
-    voxel.impulses.add({
+    voxel.add_impulse({
         .channel = voxel::Impulse::R,
-        .framelen = 100,
-        .wave = {0xFF,0xEF,0xDF,0xCF,0xBF,0xAF,0x9F,0x8F,0x7F,0x6F,0x5F,0x4F,0x3F,0x2F,0x1F,0x0F}
+        .signal = {
+            {.val=0xFF,.dur=200},
+            {.val=0x0,.dur=0}
+        }
     },
-        {0,1,2,3,4}
+        {0,1,2,3,4,5,6,7,8}
     );
 }
