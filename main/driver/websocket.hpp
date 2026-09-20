@@ -1,3 +1,4 @@
+#include <unordered_map>
 #if !CONFIG_HTTPD_WS_SUPPORT
     #error This driver requires CONFIG_HTTPD_WS_SUPPORT enabled on menuconfig
 #endif
@@ -8,7 +9,9 @@
 
 #include "system/wifi.hpp"
 #include "../quimblos/driver.hpp"
+#include "../quimblos/engine.hpp"
 
+#include <functional>
 #include <cstdint>
 #include <esp_https_server.h>
 
@@ -24,25 +27,29 @@ namespace driver {
 
     class WebSocket: public quimblos::Driver {
 
-        public:
-
         static httpd_handle_t server;
-
+        
         static struct Config {
+            std::string uri;
             uint8_t max_clients;
         } config;
         
+        static std::unordered_map<uint8_t, const std::function<void(const quimblos::msg_wrap_t*)>> callbacks;
+
         public:
 
-            WebSocket(WiFi& wifi, uint8_t max_clients = 2) {
-                config.max_clients = max_clients;
+            WebSocket(WiFi& wifi, const Config& config = {
+                .uri = "/ws",
+                .max_clients = 2
+            }) {
+                WebSocket::config = config;
             }
 
             esp_err_t load() {
 
-            /* Register event handlers to start server when Wi-Fi or Ethernet is connected,
-            * and stop server when disconnection happens.
-            */
+                /* Register event handlers to start server when Wi-Fi or Ethernet is connected,
+                * and stop server when disconnection happens.
+                */
 
                 #if !CONFIG_IDF_TARGET_LINUX
                 /* Has to run before the first connection attempt, so that the TX power and power-save
@@ -67,10 +74,19 @@ namespace driver {
 
             void send_messages();
             
+            void bind(std::unordered_map<uint8_t, const std::function<void(const quimblos::msg_wrap_t*)>> callbacks) {
+                WebSocket::callbacks = callbacks;
+            }
+            
         private:
 
             static void connect_handler(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data);
             static void disconnect_handler(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data);
+
+            static httpd_handle_t start_wss_server(void);
+            static esp_err_t ws_handler(httpd_req_t *req);
+
+            static void msg_handler(const std::string& payload);
 
             
     };

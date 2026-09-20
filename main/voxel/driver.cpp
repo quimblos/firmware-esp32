@@ -1,5 +1,6 @@
 #include "driver.hpp"
 #include "esp_err.h"
+#include "quimblos/msg.hpp"
 using namespace voxel;
 
 const char* Driver::TAG = "Voxel";
@@ -45,10 +46,12 @@ esp_err_t Driver::make_task() {
 
 void Driver::task() {
     while (1) {
-        queue.wait([this](Msg& msg) {
-            switch (msg.type) {
-                case Msg::ADD_IMPULSE:
-                    impulses.add(msg.data.add_impulse->impulse, msg.data.add_impulse->voxels); break;
+        queue.wait([this](quimblos::msg_wrap_t& wrap) {
+            switch (wrap.kind) {
+                case QB::AddImpulse: {
+                    auto& msg = qb.msg.AddImpulse.unwrap(wrap);
+                    impulses.add(msg.impulse, msg.voxels); break;
+                }
             }
         });
         impulses.tick();

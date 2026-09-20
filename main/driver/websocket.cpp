@@ -1,7 +1,9 @@
 #include "esp_log.h"
 
+#include "../quimblos/serial.hpp"
 #include "websocket.hpp"
 #include "websocket_keep_alive.hpp"
+#include "qb.hpp"
 
 using namespace driver;
 
@@ -85,7 +87,7 @@ static bool check_client_alive_cb(wss_keep_alive_t h, int fd)
     return false;
 }
 
-static esp_err_t ws_handler(httpd_req_t *req)
+esp_err_t WebSocket::ws_handler(httpd_req_t *req)
 {
     if (req->method == HTTP_GET) {
         ESP_LOGI(WebSocket::TAG, "Handshake done, the new connection was opened");
@@ -130,6 +132,7 @@ static esp_err_t ws_handler(httpd_req_t *req)
     } else if (ws_pkt.type == HTTPD_WS_TYPE_TEXT || ws_pkt.type == HTTPD_WS_TYPE_PING || ws_pkt.type == HTTPD_WS_TYPE_CLOSE) {
         if (ws_pkt.type == HTTPD_WS_TYPE_TEXT) {
             ESP_LOGI(WebSocket::TAG, "Received packet with message: %s", ws_pkt.payload);
+            msg_handler((const char*) ws_pkt.payload);
         } else if (ws_pkt.type == HTTPD_WS_TYPE_PING) {
             // Response PONG packet to peer
             ESP_LOGI(WebSocket::TAG, "Got a WS PING frame, Replying PONG");
@@ -152,7 +155,7 @@ static esp_err_t ws_handler(httpd_req_t *req)
     return ESP_OK;
 }
 
-static httpd_handle_t start_wss_echo_server(void)
+httpd_handle_t WebSocket::start_wss_server(void)
 {
     // Prepare keep-alive engine
     wss_keep_alive_config_t keep_alive_config = KEEP_ALIVE_CONFIG_DEFAULT();
@@ -191,12 +194,12 @@ static httpd_handle_t start_wss_echo_server(void)
         return NULL;
     }
 
-    // Set URI handlers
+    // Add WebSocket uri handler
     ESP_LOGI(WebSocket::TAG, "Registering URI handlers");
     static const httpd_uri_t uri = {
-        .uri        = "/ws",
+        .uri        = config.uri.c_str(),
         .method     = HTTP_GET,
-        .handler    = ws_handler,
+        .handler    = WebSocket::ws_handler,
         .user_ctx   = NULL,
         .is_websocket = true,
         .handle_ws_control_frames = true,
@@ -242,7 +245,7 @@ void WebSocket::connect_handler(void* arg, esp_event_base_t event_base,
 {
     httpd_handle_t* server = (httpd_handle_t*) arg;
     if (*server == NULL) {
-        *server = start_wss_echo_server();
+        *server = start_wss_server();
     }
 }
 
@@ -259,6 +262,13 @@ void WebSocket::disconnect_handler(void* arg, esp_event_base_t event_base,
     }
 }
 
+void WebSocket::msg_handler(const std::string& payload) {
+    uint8_t kind = quimblos::serial::chhex(payload[0])*16 + quimblos::serial::chhex(payload[1])*16;
+    if (callbacks.contains(kind)) {
+        auto wrap = qb.parse(kind, payload);
+        callbacks.at(kind)(wrap);
+    }
+}
 
 // Get all clients and send async message
 void WebSocket::send_messages()

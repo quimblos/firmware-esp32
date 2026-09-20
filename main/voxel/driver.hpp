@@ -2,50 +2,20 @@
 
 #include "data.hpp"
 #include "../quimblos/driver.hpp"
+#include "../quimblos/queue.hpp"
 #include "driver/ws281x.hpp"
 #include "esp_err.h"
-#include "quimblos/queue.hpp"
 #include "soc/gpio_num.h"
 #include "impulse.hpp"
 #include <cstdint>
-#include <variant>
+#include "qb.hpp"
 
 namespace voxel {
-
-    namespace msg {
-        struct AddImpulse {
-            Impulse impulse;
-            std::vector<uint16_t> voxels;
-        };
-    }
-    struct Msg {
-        enum Type {
-            ADD_IMPULSE
-        } type;
-        union Data {
-            msg::AddImpulse* add_impulse;
-        } data;
-
-        Msg(Type type, const Data& data):
-            type(type),
-            data(data) {}
-
-        Msg(const Msg& msg) {
-            switch (type) {
-                case ADD_IMPULSE: data.add_impulse = new msg::AddImpulse(*data.add_impulse); break;
-            }
-        }
-        ~Msg() {
-            switch (type) {
-                case ADD_IMPULSE: delete data.add_impulse; break;
-            }
-        }
-    };
 
     class Driver: public quimblos::Driver {
 
         protected:
-            quimblos::Queue<Msg> queue;
+            quimblos::Queue<quimblos::msg_wrap_t> queue;
         
             driver::WS281x ws281x;
             Grid grid;
@@ -83,13 +53,12 @@ namespace voxel {
             void flush();
 
             esp_err_t add_impulse(Impulse impulse, const std::vector<uint16_t>& voxels) {
-                return queue.push(new const Msg(
-                    Msg::ADD_IMPULSE, {
-                    .add_impulse = new msg::AddImpulse({
+                return queue.push(qb.msg.AddImpulse.wrap(
+                    new const QB::msg::AddImpulse({
                         .impulse = std::move(impulse),
                         .voxels = std::move(voxels)
                     })
-                }));
+                ));
             }
 
             void test() {

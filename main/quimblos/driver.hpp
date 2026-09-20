@@ -4,6 +4,8 @@
 
 namespace quimblos {
 
+    class Engine;
+
     class Driver {
     
         public:
