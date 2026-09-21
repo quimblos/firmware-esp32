@@ -11,6 +11,14 @@ extern "C" void app_main(void)
 {
     /* WebSocket Routes */
     driver::websocket.bind({
+        {msg_t::SetGrid, [](const qb::msg_wrap_t* d) {
+            auto& msg = msg::SetGrid::unwrap(*d);
+            driver::voxel.set_grid(msg.w, msg.h);
+        }},
+        {msg_t::MapGrid, [](const qb::msg_wrap_t* d) {
+            auto& msg = msg::MapGrid::unwrap(*d);
+            driver::voxel.map_grid(msg.coords);
+        }},
         {msg_t::AddImpulse, [](const qb::msg_wrap_t* d) {
             auto& msg = msg::AddImpulse::unwrap(*d);
             driver::voxel.add_impulse(msg.impulse, msg.voxels);
@@ -34,9 +42,9 @@ extern "C" void app_main(void)
         Default mapping
     */
 
-    driver::voxel.map({
-        {0,0},{0,1},{0,2},
-        {1,0},{1,1},{1,2},
-        {2,0},{2,1},{2,2},
+    driver::voxel.map_grid({
+        0,0, 0,1, 0,2,
+        1,0, 1,1, 1,2,
+        2,0, 2,1, 2,2
     });
 }

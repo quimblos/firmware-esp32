@@ -172,6 +172,12 @@ httpd_handle_t WebSocket::start_wss_server(void)
     /* Use non-privileged port on Linux since port 443 requires root */
     conf.port_secure = 8443;
 #endif
+    /* Websocket frames are dispatched synchronously from the httpd task, so it has to
+     * outrank the application tasks (the drivers runs at tskIDLE_PRIORITY+5, the
+     * keep-alive engine at +1) for commands to be handled without waiting on the LED
+     * tick. Keep it below the network stack (lwIP TCP/IP runs at 18), otherwise the
+     * extra priority only delays the servicing of the data the server is waiting on. */
+    conf.httpd.task_priority = tskIDLE_PRIORITY + 12;
     conf.httpd.max_open_sockets = WebSocket::config.max_clients;
     conf.httpd.global_user_ctx = keep_alive;
     conf.httpd.open_fn = wss_open_fd;

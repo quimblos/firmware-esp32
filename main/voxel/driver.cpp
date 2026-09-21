@@ -8,25 +8,45 @@ using namespace voxel;
 
 const char* Driver::TAG = "Voxel";
 
-esp_err_t Driver::map(const std::vector<XY>& coord) {
-    mapping.resize(coord.size());
-    for (size_t i = 0; i < coord.size(); i++) {
-        size_t j = coord[i].y * grid.w + coord[i].x;
-        if (j >= grid.voxels.size()) {
-            mapping.clear();
-            ESP_LOGW(TAG, "Attempt to map voxel grid failed, voxel #%d (%d, %d) is out of range. Mapping cleared.", i, coord[i].x, coord[i].y);
-            return ESP_FAIL;
-        }
-        mapping[i] = &grid.voxels[j];
-    }
+/* API */
+
+esp_err_t Driver::set_grid(uint8_t w, uint8_t h) {
+    ASSERT(
+        "Grid width must be > 0",
+        w > 0
+    )
+    ASSERT(
+        "Grid height must be > 0",
+        h > 0
+    )
+
+    grid = Grid(w, h);
+    mapping.clear();
     return ESP_OK;
 }
 
-void Driver::flush() {
-    for (uint16_t i = 0; i < mapping.size(); i++) {
-        ws281x.set(i, mapping[i]->data);
+esp_err_t Driver::map_grid(const std::vector<uint8_t>& coords) {
+    size_t n = coords.size();
+    ASSERT(
+        "Coords must have length > 0",
+        n > 0
+    )
+    ASSERT(
+        "Coords must have length divisible by 2",
+        n % 2 == 0
+    )
+    
+    mapping.resize(n/2);
+    for (size_t i = 0; i < n; i+=2) {
+        size_t j = coords[i+1] * grid.w + coords[i];
+        if (j >= grid.voxels.size()) {
+            mapping.clear();
+            ESP_LOGW(TAG, "Attempt to map voxel grid failed, voxel #%d (%d, %d) is out of range. Mapping cleared.", i, coords[i+1], coords[i]);
+            return ESP_FAIL;
+        }
+        mapping[i/2] = &grid.voxels[j];
     }
-    ws281x.flush();
+    return ESP_OK;
 }
 
 esp_err_t Driver::add_impulse(data::Impulse impulse, const std::vector<uint16_t>& voxels) {
@@ -46,6 +66,16 @@ esp_err_t Driver::add_impulse(data::Impulse impulse, const std::vector<uint16_t>
     return queue.push(msg->wrap());
     return ESP_OK;
 }
+
+/* Internal API */
+
+void Driver::flush() {
+    for (uint16_t i = 0; i < mapping.size(); i++) {
+        ws281x.set(i, mapping[i]->data);
+    }
+    ws281x.flush();
+}
+
 
 /* Tasks */
 

@@ -50,7 +50,8 @@ namespace voxel {
         
         public:
 
-            esp_err_t map(const std::vector<XY>& coord);
+            esp_err_t set_grid(uint8_t w, uint8_t h);
+            esp_err_t map_grid(const std::vector<uint8_t>& coords);
             esp_err_t add_impulse(data::Impulse impulse, const std::vector<uint16_t>& voxels);
 
             void test() { ws281x.test(); }

@@ -27,6 +27,13 @@ QB_ENGINE(voxel,
         (qb::driver::WebSocket, websocket, (wifi)),
         (voxel::Driver, voxel, ((gpio_num_t) VOXEL_GPIO, VOXEL_GRID_W, VOXEL_GRID_H))
     ),
+    QB_MSG(SetGrid, (
+        (w, uint8_t),
+        (h, uint8_t)
+    )),
+    QB_MSG(MapGrid, (
+        (coords, std::vector<uint8_t>)
+    )),
     QB_MSG(AddImpulse, (
         (impulse, data::Impulse),
         (voxels, std::vector<uint16_t>)
