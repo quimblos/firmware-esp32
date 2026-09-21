@@ -263,7 +263,13 @@ void WebSocket::disconnect_handler(void* arg, esp_event_base_t event_base,
 
 void WebSocket::msg_handler(const std::string& payload) {
     const JSON json = JSON::parse(payload);
-    auto kind = std::stoi(json.get("$").value);
+    const JSON& _kind = json.get("$");
+    if (_kind.is_empty()) {
+        ESP_LOGW(TAG, "Ignoring message without a '$' kind: %s", payload.c_str());
+        return;
+    }
+    auto kind = _kind.as<uint8_t>();
+
     if (callbacks.contains(kind)) {
         ESP_LOGI(TAG, "Parsing message of kind %d", kind);
         auto wrap = engine->wrap_from_json(kind, json);

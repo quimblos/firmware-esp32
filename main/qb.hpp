@@ -14,6 +14,11 @@
 #define VOXEL_GRID_W    3
 #define VOXEL_GRID_H    3
 
+QB_DATA(voxel,
+    QB_VEC(uint8_t),
+    QB_VEC(uint16_t)
+)
+
 QB_ENGINE(voxel,
     QB_DRIVERS(
         (qb::driver::NVS, nvs, ()),

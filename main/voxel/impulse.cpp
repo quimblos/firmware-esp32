@@ -40,8 +40,6 @@ bool impulse::Animation::tick(Driver& driver) {
     // Animation end
     if (t >= impulse.signal.size()) {
         clear(driver);
-        // DEBUG: repeat impulse
-        driver.add_impulse(impulse, voxels);
         return true;
     }
     return false;

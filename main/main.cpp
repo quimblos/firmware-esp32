@@ -39,14 +39,4 @@ extern "C" void app_main(void)
         {1,0},{1,1},{1,2},
         {2,0},{2,1},{2,2},
     });
-
-    // driver::voxel.add_impulse({
-    //     .channel = Impulse::R,
-    //     .signal = {
-    //         {.val=0xFF,.dur=200},
-    //         {.val=0x0,.dur=0}
-    //     }
-    // },
-    //     {0,1,2,3,4,5,6,7,8}
-    // );
 }

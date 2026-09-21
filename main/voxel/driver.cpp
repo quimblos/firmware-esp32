@@ -39,8 +39,11 @@ esp_err_t Driver::add_impulse(data::Impulse impulse, const std::vector<uint16_t>
         voxels.size() > 0 && voxels.size() <= 0xFFFF
     )
 
-    // auto msg = new const voxel::msg::AddImpulse(std::move(impulse), std::move(voxels));
-    // return queue.push(msg->wrap());
+    auto msg = new const voxel::msg::AddImpulse({
+        .impulse = std::move(impulse),
+        .voxels = std::move(voxels)
+    });
+    return queue.push(msg->wrap());
     return ESP_OK;
 }
 

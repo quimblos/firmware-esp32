@@ -62,38 +62,45 @@
     ((),template <> \
     inline std::ostream& to_json<std::vector<NAME>>(std::ostream& os, const std::vector<NAME>& obj) { \
         os << '['; \
-        for (const auto& it: obj) to_json(os, it) << ',';\
+        for (size_t i = 0; i < obj.size(); i++) { \
+            if (i) os << ','; \
+            to_json(os, obj[i]); \
+        } \
         os << ']'; \
         return os; \
     } \
     template <> \
     inline std::vector<NAME>* from_json<std::vector<NAME>>(const JSON& json) { \
         auto& vec = *(new std::vector<NAME>(json.children.size())); \
-        auto it = json.children.begin(); \
         for (size_t i = 0; i < vec.size(); i++) { \
-            vec[i] = std::move(*from_json<NAME>(it->second)); \
-            ++it; \
+            vec[i] = std::move(*from_json<NAME>(json.get(std::to_string(i)))); \
         } \
         return &vec; \
     })
 
-#define __QB_ENUM_REV(X) {#X, X}
+#define __QB_ENUM_STR(X) #X
 
 #define QB_ENUM(NAME, OPTIONS...) \
     ((enum NAME { \
         DEPAREN(OPTIONS) \
     }; \
-    inline static std::unordered_map<std::string, NAME> __##NAME = { \
-        MAP_LIST(__QB_ENUM_REV, DEPAREN(OPTIONS)) \
-    };), \
+    inline static std::vector<std::string> __##NAME = { \
+        MAP_LIST(__QB_ENUM_STR, DEPAREN(OPTIONS)) \
+    };),\
     template <> \
-    inline std::ostream& to_json<data::NAME>(std::ostream& os, const data::NAME& obj) { \
-        os << (uint16_t) obj; \
+    inline std::ostream& to_json<data::NAME>(std::ostream& os, const data::NAME& val) { \
+        if (val >= data::__##NAME.size()) os << "<!enum>"; \
+        else os << data::__##NAME[val]; \
         return os; \
     } \
     template <> \
     inline data::NAME* from_json<data::NAME>(const JSON& json) { \
-        return &data::__##NAME.at(json.value); \
+        for (size_t i = 0; i < data::__##NAME.size(); i++) { \
+            if (data::__##NAME[i] == json.value) { \
+                return new data::NAME((data::NAME) i); \
+            } \
+        } \
+        return new data::NAME(); \
     })
 
 // Engine

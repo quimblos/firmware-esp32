@@ -7,11 +7,6 @@
 #include "util/color.hpp"
 #include "quimblos/data.hpp"
 
-QB_DATA(voxel,
-    QB_VEC(uint8_t),
-    QB_VEC(uint16_t)
-)
-
 namespace voxel {
 
     struct XY {
