@@ -8,7 +8,8 @@
 #include "quimblos/engine.hpp"
 
 QB_DATA(voxel,
-    QB_VEC(uint8_t)
+    QB_VEC(uint8_t),
+    QB_VEC(uint16_t)
 )
 
 namespace voxel {

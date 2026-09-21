@@ -267,7 +267,7 @@ void WebSocket::msg_handler(const std::string& payload) {
     if (callbacks.contains(kind)) {
         ESP_LOGI(TAG, "Parsing message of kind %d", kind);
         auto wrap = engine->parse(kind, payload);
-        ESP_LOGI(TAG, "%s", engine->to_json(wrap).c_str());
+        ESP_LOGI(TAG, "%s", engine->unwrap_json(wrap).c_str());
         callbacks.at(kind)(wrap);
         delete wrap;
     }

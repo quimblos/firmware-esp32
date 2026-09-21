@@ -20,7 +20,7 @@
 // Data Types
 
 #define __QB_STRUCT_FIELD(X) ARG1OF2(DEPAREN(X)) ARG0(DEPAREN(X));
-#define __QB_STRUCT_FIELD_TO_JSON(X) << TARG0(DEPAREN(X)) << ':'; qb::to_json(os, obj.ARG0(DEPAREN(X))); os <<
+#define __QB_STRUCT_FIELD_TO_JSON(X) << '"' << TARG0(DEPAREN(X)) << "\":"; qb::to_json(os, obj.ARG0(DEPAREN(X))); os <<
 
 #define __QB_OBJ_STRUCT(X) DEPAREN(ARG0(DEPAREN(X)))
 #define __QB_OBJ_TO_JSON(X) ARG1OF2(DEPAREN(X))
@@ -45,14 +45,14 @@
         } \
     };), \
     template <> \
-    inline std::ostream& to_json<data::NAME>(std::ostream& os, data::NAME& obj) { \
+    inline std::ostream& to_json<data::NAME>(std::ostream& os, const data::NAME& obj) { \
         os << '{' MAP_CLIST(__QB_STRUCT_FIELD_TO_JSON, DEPAREN(FIELDS)) '}'; \
         return os; \
     })
 
 #define QB_VEC(NAME) \
     ((),template <> \
-    inline std::ostream& to_json<std::vector<NAME>>(std::ostream& os, std::vector<NAME>& obj) { \
+    inline std::ostream& to_json<std::vector<NAME>>(std::ostream& os, const std::vector<NAME>& obj) { \
         os << '['; \
         for (const auto& it: obj) qb::to_json(os, it) << ',';\
         os << ']'; \
@@ -120,7 +120,7 @@ namespace NS { \
         } \
     };), \
     template <> \
-    std::ostream& to_json<msg::NAME>(std::ostream& os, msg::NAME& obj) { \
+    inline std::ostream& to_json<msg::NAME>(std::ostream& os, const msg::NAME& obj) { \
         os << '{' MAP_CLIST(__QB_STRUCT_FIELD_TO_JSON, DEPAREN(FIELDS)) '}'; \
         return os; \
     })
