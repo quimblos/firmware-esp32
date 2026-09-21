@@ -25,7 +25,5 @@ QB_ENGINE(voxel,
     QB_MSG(AddImpulse, (
         (impulse, data::Impulse),
         (voxels, std::vector<uint16_t>)
-    ),
-        {qb::serial::Prop::UINT8, (void*) &impulse.channel}
-    )
+    ))
 )

@@ -13,10 +13,10 @@ namespace qb {
     }
 
     template <class T>
-    inline T from_json(const JSON& json) { return JSON::empty; }
+    inline T* from_json(const JSON& json) { return JSON::empty; }
 
-    template<> inline uint8_t from_json(const JSON& json) { return std::atoi(json.value.c_str()); }
-    template<> inline uint16_t from_json(const JSON& json) { return std::atoi(json.value.c_str()); }
+    template<> inline uint8_t* from_json(const JSON& json) { return new uint8_t(std::stoi(json.value)); }
+    template<> inline uint16_t* from_json(const JSON& json) { return new uint16_t(std::stoi(json.value)); }
 
     inline JSON parse_json(const std::string& payload) {
         return JSON::parse(payload);

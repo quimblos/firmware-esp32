@@ -9,6 +9,7 @@
 #define __QB_MSG_TO_JSON(X) ARG2OF3(DEPAREN(X))
 #define __QB_MSG_PARSE_CASE(X) case msg_t::__QB_MSG_NAME(X): return msg::__QB_MSG_NAME(X)::parse(payload)->wrap();
 #define __QB_MSG_TO_JSON_CASE(X) case msg_t::__QB_MSG_NAME(X): qb::to_json(os, *(msg::__QB_MSG_NAME(X)*) wrap->data); break;
+#define __QB_MSG_FROM_JSON_CASE(X) case msg_t::__QB_MSG_NAME(X): return qb::from_json<msg::__QB_MSG_NAME(X)>(json)->wrap();
 
 #define __QB_DRIVER_CLASS(X) ARG0(DEPAREN(X))
 #define __QB_DRIVER_NAME(X) ARG1OF3(DEPAREN(X))
@@ -21,7 +22,7 @@
 
 #define __QB_STRUCT_FIELD(X) ARG1OF2(DEPAREN(X)) ARG0(DEPAREN(X));
 #define __QB_STRUCT_FIELD_TO_JSON(X) << '"' << TARG0(DEPAREN(X)) << "\":"; to_json(os, obj.ARG0(DEPAREN(X))); os <<
-#define __QB_STRUCT_FIELD_FROM_JSON(X) .ARG0(DEPAREN(X)) = from_json<ARG1OF2(DEPAREN(X))>(json.get(TARG0(DEPAREN(X))))
+#define __QB_STRUCT_FIELD_FROM_JSON(X) .ARG0(DEPAREN(X)) = *from_json<ARG1OF2(DEPAREN(X))>(json.get(TARG0(DEPAREN(X))))
 
 #define __QB_OBJ_STRUCT(X) DEPAREN(ARG0(DEPAREN(X)))
 #define __QB_OBJ_TO_JSON(X) ARG1OF2(DEPAREN(X))
@@ -51,8 +52,8 @@
         return os; \
     } \
     template <> \
-    inline data::NAME from_json<data::NAME>(const JSON& json) { \
-        return data::NAME({ \
+    inline data::NAME* from_json<data::NAME>(const JSON& json) { \
+        return new data::NAME({ \
             MAP_LIST(__QB_STRUCT_FIELD_FROM_JSON, DEPAREN(FIELDS)) \
         }); \
     })
@@ -66,14 +67,14 @@
         return os; \
     } \
     template <> \
-    inline std::vector<NAME> from_json<std::vector<NAME>>(const JSON& json) { \
-        auto vec = std::vector<NAME>(json.children.size()); \
+    inline std::vector<NAME>* from_json<std::vector<NAME>>(const JSON& json) { \
+        auto& vec = *(new std::vector<NAME>(json.children.size())); \
         auto it = json.children.begin(); \
         for (size_t i = 0; i < vec.size(); i++) { \
-            vec[i] = from_json<NAME>(it->second); \
+            vec[i] = std::move(*from_json<NAME>(it->second)); \
             ++it; \
         } \
-        return vec; \
+        return &vec; \
     })
 
 #define __QB_ENUM_REV(X) {#X, X}
@@ -91,8 +92,8 @@
         return os; \
     } \
     template <> \
-    inline data::NAME from_json<data::NAME>(const JSON& json) { \
-        return data::__##NAME.at(json.value); \
+    inline data::NAME* from_json<data::NAME>(const JSON& json) { \
+        return &data::__##NAME.at(json.value); \
     })
 
 // Engine
@@ -119,18 +120,18 @@ namespace NS { \
             Engine() { \
                 MAP(__QB_DRIVER_BIND, DRIVERS) \
             } \
-            const qb::msg_wrap_t* parse(uint8_t kind, const std::string& payload) const { \
-                switch (kind) { \
-                    MAP(__QB_MSG_PARSE_CASE, MSGS) \
-                } \
-                return nullptr; \
-            } \
-            const std::string unwrap_json(const qb::msg_wrap_t* wrap) const { \
+            const std::string unwrap_to_json(const qb::msg_wrap_t* wrap) const { \
                 std::ostringstream os; \
                 switch (wrap->kind) { \
                     MAP(__QB_MSG_TO_JSON_CASE, MSGS) \
                 } \
                 return os.str(); \
+            } \
+            const qb::msg_wrap_t* wrap_from_json(uint8_t kind, const JSON& json) const { \
+                switch (kind) { \
+                    MAP(__QB_MSG_FROM_JSON_CASE, MSGS) \
+                } \
+                return nullptr; \
             } \
             void boot() const { \
                 MAP(__QB_BOOT_DRIVER, DRIVERS) \
@@ -140,23 +141,20 @@ namespace NS { \
 
 #define QB_DRIVERS(DRIVERS...) DRIVERS
 
-#define QB_MSG(NAME, FIELDS, SCHEMA...) \
+#define QB_MSG(NAME, FIELDS) \
     (NAME, (struct NAME { \
         MAP(__QB_STRUCT_FIELD, DEPAREN(FIELDS)) \
         inline const qb::msg_wrap_t* wrap() const { return new qb::msg_wrap_t({ .kind = msg_t::NAME, .data = this }); } \
         inline static const NAME& unwrap(const qb::msg_wrap_t& wrap) { return *(const NAME*) wrap.data; } \
-        inline const qb::serial::Schema schema() const { return { SCHEMA }; } \
-        inline static const NAME* parse(const std::string& payload) { \
-            auto msg = new NAME(); \
-            qb::serial::parse(msg->schema(), payload); \
-            return msg; \
-        } \
-        inline const std::string dump() const { \
-            return qb::serial::dump(schema(), msg_t::NAME); \
-        } \
     };), \
     template <> \
     inline std::ostream& to_json<msg::NAME>(std::ostream& os, const msg::NAME& obj) { \
         os << '{' MAP_CLIST(__QB_STRUCT_FIELD_TO_JSON, DEPAREN(FIELDS)) '}'; \
         return os; \
+    } \
+    template <> \
+    inline msg::NAME* from_json<msg::NAME>(const JSON& json) { \
+        return new msg::NAME({ \
+            MAP_LIST(__QB_STRUCT_FIELD_FROM_JSON, DEPAREN(FIELDS)) \
+        }); \
     })

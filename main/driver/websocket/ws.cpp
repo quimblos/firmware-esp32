@@ -1,6 +1,5 @@
 #include "esp_log.h"
 
-#include "../../quimblos/serial.hpp"
 #include "ws.hpp"
 #include "keep_alive.hpp"
 
@@ -263,11 +262,12 @@ void WebSocket::disconnect_handler(void* arg, esp_event_base_t event_base,
 }
 
 void WebSocket::msg_handler(const std::string& payload) {
-    uint8_t kind = qb::serial::chhex(payload[0])*16 + qb::serial::chhex(payload[1])*16;
+    const JSON json = JSON::parse(payload);
+    auto kind = std::stoi(json.get("$").value);
     if (callbacks.contains(kind)) {
         ESP_LOGI(TAG, "Parsing message of kind %d", kind);
-        auto wrap = engine->parse(kind, payload);
-        ESP_LOGI(TAG, "%s", engine->unwrap_json(wrap).c_str());
+        auto wrap = engine->wrap_from_json(kind, json);
+        ESP_LOGI(TAG, "%s", engine->unwrap_to_json(wrap).c_str());
         callbacks.at(kind)(wrap);
         delete wrap;
     }
