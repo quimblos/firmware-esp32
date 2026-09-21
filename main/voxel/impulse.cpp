@@ -21,11 +21,11 @@ bool impulse::Animation::tick(Driver& driver) {
     // Update channel data
     for (const auto index: voxels) {
         switch (impulse.channel) {
-            case data::Impulse::R:
+            case data::ImpulseChannel::R:
                 driver.mapping[index]->data.r = frame; break;
-            case data::Impulse::G:
+            case data::ImpulseChannel::G:
                 driver.mapping[index]->data.g = frame; break;
-            case data::Impulse::B:
+            case data::ImpulseChannel::B:
                 driver.mapping[index]->data.b = frame; break;
         }
     }
@@ -50,11 +50,11 @@ bool impulse::Animation::tick(Driver& driver) {
 void impulse::Animation::clear(Driver& driver) {
     for (const auto index: voxels) {
         switch (impulse.channel) {
-            case data::Impulse::R:
+            case data::ImpulseChannel::R:
                 driver.mapping[index]->data.r = 0; break;
-            case data::Impulse::G:
+            case data::ImpulseChannel::G:
                 driver.mapping[index]->data.g = 0; break;
-            case data::Impulse::B:
+            case data::ImpulseChannel::B:
                 driver.mapping[index]->data.b = 0; break;
         }
     }

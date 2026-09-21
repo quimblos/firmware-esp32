@@ -20,7 +20,8 @@
 // Data Types
 
 #define __QB_STRUCT_FIELD(X) ARG1OF2(DEPAREN(X)) ARG0(DEPAREN(X));
-#define __QB_STRUCT_FIELD_TO_JSON(X) << '"' << TARG0(DEPAREN(X)) << "\":"; qb::to_json(os, obj.ARG0(DEPAREN(X))); os <<
+#define __QB_STRUCT_FIELD_TO_JSON(X) << '"' << TARG0(DEPAREN(X)) << "\":"; to_json(os, obj.ARG0(DEPAREN(X))); os <<
+#define __QB_STRUCT_FIELD_FROM_JSON(X) .ARG0(DEPAREN(X)) = from_json<ARG1OF2(DEPAREN(X))>(json.get(TARG0(DEPAREN(X))))
 
 #define __QB_OBJ_STRUCT(X) DEPAREN(ARG0(DEPAREN(X)))
 #define __QB_OBJ_TO_JSON(X) ARG1OF2(DEPAREN(X))
@@ -48,15 +49,50 @@
     inline std::ostream& to_json<data::NAME>(std::ostream& os, const data::NAME& obj) { \
         os << '{' MAP_CLIST(__QB_STRUCT_FIELD_TO_JSON, DEPAREN(FIELDS)) '}'; \
         return os; \
+    } \
+    template <> \
+    inline data::NAME from_json<data::NAME>(const JSON& json) { \
+        return data::NAME({ \
+            MAP_LIST(__QB_STRUCT_FIELD_FROM_JSON, DEPAREN(FIELDS)) \
+        }); \
     })
 
 #define QB_VEC(NAME) \
     ((),template <> \
     inline std::ostream& to_json<std::vector<NAME>>(std::ostream& os, const std::vector<NAME>& obj) { \
         os << '['; \
-        for (const auto& it: obj) qb::to_json(os, it) << ',';\
+        for (const auto& it: obj) to_json(os, it) << ',';\
         os << ']'; \
         return os; \
+    } \
+    template <> \
+    inline std::vector<NAME> from_json<std::vector<NAME>>(const JSON& json) { \
+        auto vec = std::vector<NAME>(json.children.size()); \
+        auto it = json.children.begin(); \
+        for (size_t i = 0; i < vec.size(); i++) { \
+            vec[i] = from_json<NAME>(it->second); \
+            ++it; \
+        } \
+        return vec; \
+    })
+
+#define __QB_ENUM_REV(X) {#X, X}
+
+#define QB_ENUM(NAME, OPTIONS...) \
+    ((enum NAME { \
+        DEPAREN(OPTIONS) \
+    }; \
+    inline static std::unordered_map<std::string, NAME> __##NAME = { \
+        MAP_LIST(__QB_ENUM_REV, DEPAREN(OPTIONS)) \
+    };), \
+    template <> \
+    inline std::ostream& to_json<data::NAME>(std::ostream& os, const data::NAME& obj) { \
+        os << (uint16_t) obj; \
+        return os; \
+    } \
+    template <> \
+    inline data::NAME from_json<data::NAME>(const JSON& json) { \
+        return data::__##NAME.at(json.value); \
     })
 
 // Engine

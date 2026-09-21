@@ -1,5 +1,6 @@
 idf_component_register(SRCS "main.cpp"
                             "util/color.cpp"
+                            "util/json.cpp"
                             "driver/system/blufi.cpp"
                             "driver/system/blufi_security.cpp"
                             "driver/system/wifi.cpp"

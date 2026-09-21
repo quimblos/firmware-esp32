@@ -19,11 +19,6 @@ namespace qb {
             virtual const msg_wrap_t* parse(uint8_t kind, const std::string& payload) const;
     };
 
-    template <class T>
-    std::ostream& to_json(std::ostream& os, const T& v) {
-        os << v;
-        return os;
-    }
 }
 
 #include "data.hpp"

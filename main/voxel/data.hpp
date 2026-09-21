@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "util/color.hpp"
-#include "quimblos/engine.hpp"
+#include "quimblos/data.hpp"
 
 QB_DATA(voxel,
     QB_VEC(uint8_t),

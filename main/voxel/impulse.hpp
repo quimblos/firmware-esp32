@@ -4,17 +4,18 @@
 #include <vector>
 
 #include "esp_err.h"
-#include "quimblos/engine.hpp"
+#include "quimblos/data.hpp"
 
 QB_DATA(voxel,
     QB_OBJ(Frame, (
         (val, uint8_t),
         (dur, uint8_t)
     )),
+    QB_ENUM(ImpulseChannel, ( R, G, B )),
     QB_VEC(data::Frame),
     QB_OBJ(Impulse, (
-        (channel, enum Channel { R, G, B }),
-        (signal, std::vector<Frame>)
+        (channel, data::ImpulseChannel),
+        (signal, std::vector<data::Frame>)
     ))
 )
 
