@@ -143,7 +143,7 @@ namespace qb {
                     for (int i = 0; i < pixels*3; i++) {
                         data_str += std::to_string(data[i]) + " ";
                     }
-                    ESP_LOGI(TAG, "data: %s", data_str.c_str());
+                    ESP_LOGD(TAG, "data: %s", data_str.c_str());
     
                     ESP_ERROR_CHECK(rmt_transmit(chan, encoder, data, pixels*3, &tx_config));
                     ESP_ERROR_CHECK(rmt_tx_wait_all_done(chan, portMAX_DELAY));

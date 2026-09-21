@@ -13,32 +13,32 @@ namespace voxel {
 
     class Driver: public qb::Driver {
 
+        friend struct impulse::Animation;
+        friend class impulse::Animator;
+
         protected:
-            qb::Queue<const qb::msg_wrap_t> queue;
-        
+
             qb::driver::WS281x ws281x;
-            Grid grid;
+            qb::Queue<const qb::msg_wrap_t> queue;
 
             uint8_t tick_ms;
-
-            ImpulseAnimator impulses;
-            
-        public:
-            
+            Grid grid;
             std::vector<Voxel*> mapping;
-
+            
+            impulse::Animator impulses;
+            
         public:
 
             Driver(gpio_num_t gpio, uint8_t w, uint8_t h, uint8_t tick_ms = 10):
-                queue(TAG),
                 ws281x(gpio, w*h),
-                grid(w,h),
+                queue(TAG),
                 tick_ms(tick_ms),
+                grid(w,h),
                 impulses(*this) {}
 
             esp_err_t load() {
                 ws281x.load();
-                ESP_ERROR_CHECK(make_task());
+                ESP_ERROR_CHECK(create_task());
                 return ESP_OK;
             }
 
@@ -47,19 +47,21 @@ namespace voxel {
             }
 
             static const char* TAG;
+        
+        public:
 
             esp_err_t map(const std::vector<XY>& coord);
+            esp_err_t add_impulse(data::Impulse impulse, const std::vector<uint16_t>& voxels);
+
+            void test() { ws281x.test(); }
+
+        protected:
+
             void flush();
-
-            esp_err_t add_impulse(Impulse impulse, const std::vector<uint16_t>& voxels);
-
-            void test() {
-                ws281x.test();
-            }
 
         private:
             
-            esp_err_t make_task();
+            esp_err_t create_task();
             void task();
     };
 

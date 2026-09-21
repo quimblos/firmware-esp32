@@ -26,7 +26,7 @@ namespace qb {
 
         typedef std::vector<Prop> Schema;
 
-        uint8_t chhex(const char& ch) {
+        inline uint8_t chhex(const char& ch) {
             switch (ch) {
                 case '0': return 0;
                 case '1': return 1;
@@ -55,7 +55,7 @@ namespace qb {
         }
 
 
-        std::string dump(const serial::Schema& schema, uint8_t kind) {
+        inline std::string dump(const serial::Schema& schema, uint8_t kind) {
             std::ostringstream ss;
             ss << std::hex << std::setfill('0') << std::setw(2) << kind;
             
@@ -77,7 +77,7 @@ namespace qb {
             return ss.str();
         }
 
-        void parse(const serial::Schema& schema, const std::string& payload) {
+        inline void parse(const serial::Schema& schema, const std::string& payload) {
             const char* p = payload.c_str();
             uint8_t d = 0;
             for (size_t i = 2; i < payload.size();) {

@@ -265,7 +265,9 @@ void WebSocket::disconnect_handler(void* arg, esp_event_base_t event_base,
 void WebSocket::msg_handler(const std::string& payload) {
     uint8_t kind = qb::serial::chhex(payload[0])*16 + qb::serial::chhex(payload[1])*16;
     if (callbacks.contains(kind)) {
+        ESP_LOGI(TAG, "Parsing message of kind %d", kind);
         auto wrap = engine->parse(kind, payload);
+        ESP_LOGI(TAG, "%s", engine->to_json(wrap).c_str());
         callbacks.at(kind)(wrap);
         delete wrap;
     }

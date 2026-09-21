@@ -2,6 +2,8 @@
 #include "esp_err.h"
 
 #include "qb.hpp"
+#include "quimblos/data.hpp"
+#include "voxel/impulse.hpp"
 using namespace voxel;
 
 const char* Driver::TAG = "Voxel";
@@ -27,15 +29,24 @@ void Driver::flush() {
     ws281x.flush();
 }
 
-esp_err_t Driver::add_impulse(Impulse impulse, const std::vector<uint16_t>& voxels) {
-    auto msg = new const voxel::msg::AddImpulse({
-        .impulse = std::move(impulse),
-        .voxels = std::move(voxels)
-    });
-    return queue.push(msg->wrap());
+esp_err_t Driver::add_impulse(data::Impulse impulse, const std::vector<uint16_t>& voxels) {
+    ASSERT(
+        "Impulse signal must have length between 1 and 256",
+        impulse.signal.size() > 0 && impulse.signal.size() <= 256
+    )
+    ASSERT(
+        "Voxels must have length between 1 and 0xFFFF",
+        voxels.size() > 0 && voxels.size() <= 0xFFFF
+    )
+
+    // auto msg = new const voxel::msg::AddImpulse(std::move(impulse), std::move(voxels));
+    // return queue.push(msg->wrap());
+    return ESP_OK;
 }
 
-esp_err_t Driver::make_task() {
+/* Tasks */
+
+esp_err_t Driver::create_task() {
     auto ret = xTaskCreate(
         [](void* driver) {
             ((Driver* ) driver)->task();

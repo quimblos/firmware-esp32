@@ -1,9 +1,15 @@
 #pragma once
 
 #include <cstdint>
+#include <sstream>
 #include <vector>
 
 #include "util/color.hpp"
+#include "quimblos/engine.hpp"
+
+QB_DATA(voxel,
+    QB_VEC(uint8_t)
+)
 
 namespace voxel {
 

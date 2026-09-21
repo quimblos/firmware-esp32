@@ -6,7 +6,7 @@
 #include <utility>
 using namespace voxel;
 
-bool ImpulseAnimation::tick(Driver& driver) {
+bool impulse::Animation::tick(Driver& driver) {
 
     // Interpolate signal frames
     uint8_t frame = 0;
@@ -21,11 +21,11 @@ bool ImpulseAnimation::tick(Driver& driver) {
     // Update channel data
     for (const auto index: voxels) {
         switch (impulse.channel) {
-            case Impulse::R:
+            case data::Impulse::R:
                 driver.mapping[index]->data.r = frame; break;
-            case Impulse::G:
+            case data::Impulse::G:
                 driver.mapping[index]->data.g = frame; break;
-            case Impulse::B:
+            case data::Impulse::B:
                 driver.mapping[index]->data.b = frame; break;
         }
     }
@@ -40,30 +40,31 @@ bool ImpulseAnimation::tick(Driver& driver) {
     // Animation end
     if (t >= impulse.signal.size()) {
         clear(driver);
+        // DEBUG: repeat impulse
         driver.add_impulse(impulse, voxels);
         return true;
     }
     return false;
 }
 
-void ImpulseAnimation::clear(Driver& driver) {
+void impulse::Animation::clear(Driver& driver) {
     for (const auto index: voxels) {
         switch (impulse.channel) {
-            case Impulse::R:
+            case data::Impulse::R:
                 driver.mapping[index]->data.r = 0; break;
-            case Impulse::G:
+            case data::Impulse::G:
                 driver.mapping[index]->data.g = 0; break;
-            case Impulse::B:
+            case data::Impulse::B:
                 driver.mapping[index]->data.b = 0; break;
         }
     }
 }
 
-esp_err_t ImpulseAnimator::add(Impulse impulse, const std::vector<uint16_t>& voxels) {
+esp_err_t impulse::Animator::add(data::Impulse impulse, const std::vector<uint16_t>& voxels) {
     
     for (const auto& index: voxels) {
         if (index >= driver.mapping.size()) {
-            ESP_LOGW(Driver::TAG, "Attempt to add impulse animation failed, voxel #%d is out of range. ImpulseAnimation not added.", index);
+            ESP_LOGW(Driver::TAG, "Attempt to add impulse animation failed, voxel #%d is out of range. impulse::Animation not added.", index);
             return ESP_FAIL;
         }
     }
@@ -81,13 +82,13 @@ esp_err_t ImpulseAnimator::add(Impulse impulse, const std::vector<uint16_t>& vox
     }
 
     // Add animation
-    animations.push_back(ImpulseAnimation(impulse, voxels));
+    animations.push_back(impulse::Animation(impulse, voxels));
     return ESP_OK;
 }
 
-void ImpulseAnimator::tick() {
-    ESP_LOGI(Driver::TAG, "ImpulseAnimator tick, animations: %zu", animations.size());
-    std::vector<ImpulseAnimation>::iterator it = animations.begin();
+void impulse::Animator::tick() {
+    ESP_LOGD(Driver::TAG, "impulse::Animator tick, animations: %zu", animations.size());
+    std::vector<impulse::Animation>::iterator it = animations.begin();
     while(it != animations.end()) {
         if(it->tick(driver)) {
             it = animations.erase(it);

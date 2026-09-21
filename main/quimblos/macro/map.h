@@ -50,6 +50,10 @@
 #define MAP_LIST1(f, x, peek, ...) , f(x) DEFER ( MAP_NEXT(peek, MAP_LIST0) ) ( f, peek, __VA_ARGS__ ) 
 #define MAP_LIST2(f, x, peek, ...)   f(x) DEFER ( MAP_NEXT(peek, MAP_LIST1) ) ( f, peek, __VA_ARGS__ ) 
 
+#define MAP_CLIST0(f, x, peek, ...) ',' f(x) DEFER ( MAP_NEXT(peek, MAP_CLIST1) ) ( f, peek, __VA_ARGS__ ) 
+#define MAP_CLIST1(f, x, peek, ...) ',' f(x) DEFER ( MAP_NEXT(peek, MAP_CLIST0) ) ( f, peek, __VA_ARGS__ ) 
+#define MAP_CLIST2(f, x, peek, ...)   f(x) DEFER ( MAP_NEXT(peek, MAP_CLIST1) ) ( f, peek, __VA_ARGS__ ) 
+
 #define MAP_LIST0_UD(f, userdata, x, peek, ...) , f(x, userdata) DEFER ( MAP_NEXT(peek, MAP_LIST1_UD) ) ( f, userdata, peek, __VA_ARGS__ ) 
 #define MAP_LIST1_UD(f, userdata, x, peek, ...) , f(x, userdata) DEFER ( MAP_NEXT(peek, MAP_LIST0_UD) ) ( f, userdata, peek, __VA_ARGS__ ) 
 #define MAP_LIST2_UD(f, userdata, x, peek, ...)   f(x, userdata) DEFER ( MAP_NEXT(peek, MAP_LIST1_UD) ) ( f, userdata, peek, __VA_ARGS__ ) 
@@ -68,6 +72,12 @@
  * inserts commas between the results.
  */
 #define MAP_LIST(f, ...) EVAL(MAP_LIST2(f, __VA_ARGS__, ()()(), ()()(), ()()(), 0))
+
+/**
+ * Applies the function macro `f` to each of the remaining parameters and
+ * inserts comma characters between the results.
+ */
+#define MAP_CLIST(f, ...) EVAL(MAP_CLIST2(f, __VA_ARGS__, ()()(), ()()(), ()()(), 0))
 
 /**
  * Applies the function macro `f` to each of the remaining parameters and passes userdata as the second parameter to each invocation,

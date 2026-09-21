@@ -1,4 +1,8 @@
 #include "qb.hpp"
+#include "voxel/impulse.hpp"
+#include <concepts>
+#include <cstdint>
+#include <initializer_list>
 
 using namespace voxel;
 static Engine engine;
@@ -30,13 +34,13 @@ extern "C" void app_main(void)
         Default mapping
     */
 
-    // qb.voxel.map({
-    //     {0,0},{0,1},{0,2},
-    //     {1,0},{1,1},{1,2},
-    //     {2,0},{2,1},{2,2},
-    // });
+    driver::voxel.map({
+        {0,0},{0,1},{0,2},
+        {1,0},{1,1},{1,2},
+        {2,0},{2,1},{2,2},
+    });
 
-    // voxel.add_impulse({
+    // driver::voxel.add_impulse({
     //     .channel = Impulse::R,
     //     .signal = {
     //         {.val=0xFF,.dur=200},

@@ -37,7 +37,7 @@ namespace qb {
                 uint8_t max_clients;
             } config;
             
-            static std::unordered_map<uint8_t, cb_t> callbacks;
+            inline static std::unordered_map<uint8_t, cb_t> callbacks;
     
             public:
     

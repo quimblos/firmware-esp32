@@ -8,7 +8,7 @@ namespace qb {
 
     class Driver {
         public:
-            static const Engine* engine;
+            inline static const Engine* engine = nullptr;
 
         public:
             ~Driver() {}
