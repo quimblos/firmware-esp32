@@ -11,7 +11,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
 #include "freertos/task.h"
-#include "websocket_keep_alive.hpp"
+#include "keep_alive.hpp"
 #if !CONFIG_IDF_TARGET_LINUX
 #include <esp_system.h>
 #include "esp_timer.h"

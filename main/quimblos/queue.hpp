@@ -5,7 +5,7 @@
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 
-namespace quimblos {
+namespace qb {
 
     template <class T, std::size_t N = 8>
     class Queue {

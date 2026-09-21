@@ -1,6 +1,7 @@
 #include "driver.hpp"
 #include "esp_err.h"
-#include "quimblos/msg.hpp"
+
+#include "qb.hpp"
 using namespace voxel;
 
 const char* Driver::TAG = "Voxel";
@@ -26,6 +27,14 @@ void Driver::flush() {
     ws281x.flush();
 }
 
+esp_err_t Driver::add_impulse(Impulse impulse, const std::vector<uint16_t>& voxels) {
+    auto msg = new const voxel::msg::AddImpulse({
+        .impulse = std::move(impulse),
+        .voxels = std::move(voxels)
+    });
+    return queue.push(msg->wrap());
+}
+
 esp_err_t Driver::make_task() {
     auto ret = xTaskCreate(
         [](void* driver) {
@@ -46,11 +55,12 @@ esp_err_t Driver::make_task() {
 
 void Driver::task() {
     while (1) {
-        queue.wait([this](quimblos::msg_wrap_t& wrap) {
+        queue.wait([this](const qb::msg_wrap_t& wrap) {
             switch (wrap.kind) {
-                case QB::AddImpulse: {
-                    auto& msg = qb.msg.AddImpulse.unwrap(wrap);
-                    impulses.add(msg.impulse, msg.voxels); break;
+                case voxel::msg_t::AddImpulse: {
+                    auto& msg = voxel::msg::AddImpulse::unwrap(wrap);
+                    impulses.add(msg.impulse, msg.voxels);
+                    break;
                 }
             }
         });

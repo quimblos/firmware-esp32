@@ -1,7 +1,7 @@
 #include "blufi.hpp"
 #include "esp_blufi.h"
 
-using namespace driver;
+using namespace qb::driver;
 
 WiFi* BluFi::wifi;
 const char* BluFi::TAG = "BluFi";

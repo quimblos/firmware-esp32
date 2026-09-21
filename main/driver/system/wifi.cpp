@@ -1,7 +1,7 @@
 #include "wifi.hpp"
 #include "esp_log.h"
 #include <cstring>
-using namespace driver;
+using namespace qb::driver;
 
 const char* WiFi::TAG = "WiFi";
 

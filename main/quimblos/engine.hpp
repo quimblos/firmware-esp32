@@ -1,27 +1,23 @@
 #pragma once
 
-#include <vector>
-#include "driver.hpp"
-#include "serial.hpp"
+#include <cstdint>
+#include <string>
 
-namespace quimblos {
-
+namespace qb {
+    
     struct msg_wrap_t {
-        uint8_t kind;
-        void* data;
+        const uint8_t kind;
+        const void* data;
     };
 
     class Engine {
-        protected:
-            std::vector<Driver*> drivers;
-
         public:
-            Engine(std::vector<Driver*> drivers):
-                drivers(drivers) {}
-
-            void boot();
-
-            static const char* TAG;
+            virtual void boot() const;
+            virtual const msg_wrap_t* parse(uint8_t kind, const std::string& payload) const;
     };
 
 }
+
+#include "serial.hpp"
+#include "driver.hpp"
+#include "quimblos/macro/engine.h"

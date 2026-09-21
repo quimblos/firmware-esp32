@@ -6,7 +6,7 @@
 
 #include "esp_check.h"
 #include "ws281x.hpp"
-using namespace driver;
+using namespace qb::driver;
 
 const char* WS281x::TAG = "WS281x";
 

@@ -2,7 +2,7 @@
 #include "esp_crc.h"
 
 #include "blufi.hpp"
-using namespace driver;
+using namespace qb::driver;
 
 /*
    The SEC_TYPE_xxx is for self-defined packet data type in the procedure of "BLUFI negotiate key"

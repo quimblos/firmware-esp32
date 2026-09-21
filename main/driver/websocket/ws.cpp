@@ -1,16 +1,16 @@
 #include "esp_log.h"
 
-#include "../quimblos/serial.hpp"
-#include "websocket.hpp"
-#include "websocket_keep_alive.hpp"
-#include "qb.hpp"
+#include "../../quimblos/serial.hpp"
+#include "ws.hpp"
+#include "keep_alive.hpp"
 
-using namespace driver;
+using namespace qb::driver;
 
 const char* WebSocket::TAG = "WebSocket";
 
 httpd_handle_t WebSocket::server = NULL;
 WebSocket::Config WebSocket::config = {
+    .uri = "/ws",
     .max_clients = 2
 };
 
@@ -263,10 +263,14 @@ void WebSocket::disconnect_handler(void* arg, esp_event_base_t event_base,
 }
 
 void WebSocket::msg_handler(const std::string& payload) {
-    uint8_t kind = quimblos::serial::chhex(payload[0])*16 + quimblos::serial::chhex(payload[1])*16;
+    uint8_t kind = qb::serial::chhex(payload[0])*16 + qb::serial::chhex(payload[1])*16;
     if (callbacks.contains(kind)) {
-        auto wrap = qb.parse(kind, payload);
+        auto wrap = engine->parse(kind, payload);
         callbacks.at(kind)(wrap);
+        delete wrap;
+    }
+    else {
+        ESP_LOGW(TAG, "Unknown message kind %d", kind);
     }
 }
 

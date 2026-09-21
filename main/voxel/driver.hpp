@@ -1,23 +1,22 @@
 #pragma once
 
 #include "data.hpp"
-#include "../quimblos/driver.hpp"
+#include "../quimblos/engine.hpp"
 #include "../quimblos/queue.hpp"
-#include "driver/ws281x.hpp"
+#include "driver/led/ws281x.hpp"
 #include "esp_err.h"
 #include "soc/gpio_num.h"
 #include "impulse.hpp"
 #include <cstdint>
-#include "qb.hpp"
 
 namespace voxel {
 
-    class Driver: public quimblos::Driver {
+    class Driver: public qb::Driver {
 
         protected:
-            quimblos::Queue<quimblos::msg_wrap_t> queue;
+            qb::Queue<const qb::msg_wrap_t> queue;
         
-            driver::WS281x ws281x;
+            qb::driver::WS281x ws281x;
             Grid grid;
 
             uint8_t tick_ms;
@@ -52,14 +51,7 @@ namespace voxel {
             esp_err_t map(const std::vector<XY>& coord);
             void flush();
 
-            esp_err_t add_impulse(Impulse impulse, const std::vector<uint16_t>& voxels) {
-                return queue.push(qb.msg.AddImpulse.wrap(
-                    new const QB::msg::AddImpulse({
-                        .impulse = std::move(impulse),
-                        .voxels = std::move(voxels)
-                    })
-                ));
-            }
+            esp_err_t add_impulse(Impulse impulse, const std::vector<uint16_t>& voxels);
 
             void test() {
                 ws281x.test();
