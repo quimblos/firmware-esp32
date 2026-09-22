@@ -31,9 +31,6 @@ QB_ENGINE(voxel,
         (w, uint8_t),
         (h, uint8_t)
     )),
-    QB_MSG(MapGrid, (
-        (coords, std::vector<uint8_t>)
-    )),
     QB_MSG(AddImpulse, (
         (impulse, data::Impulse),
         (voxels, std::vector<uint16_t>)

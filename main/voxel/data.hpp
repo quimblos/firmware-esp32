@@ -15,12 +15,9 @@ namespace voxel {
     };
 
     struct Voxel {
-        uint16_t index; // 0xFFFF -> unassigned
-
         RGB data;
 
-        Voxel(uint16_t index = 0xFFFF):
-            index(index) {}
+        Voxel() {}
         
         void set(uint8_t r, uint8_t g, uint8_t b) {
             data.r = r;
@@ -39,7 +36,6 @@ namespace voxel {
             w(w),
             h(h),
             voxels(std::vector<Voxel>(w*h)) {}
-
     };
 
 

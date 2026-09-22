@@ -20,32 +20,11 @@ esp_err_t Driver::set_grid(uint8_t w, uint8_t h) {
         h > 0
     )
 
-    grid = Grid(w, h);
-    mapping.clear();
-    return ESP_OK;
-}
-
-esp_err_t Driver::map_grid(const std::vector<uint8_t>& coords) {
-    size_t n = coords.size();
-    ASSERT(
-        "Coords must have length > 0",
-        n > 0
-    )
-    ASSERT(
-        "Coords must have length divisible by 2",
-        n % 2 == 0
-    )
-    
-    mapping.resize(n/2);
-    for (size_t i = 0; i < n; i+=2) {
-        size_t j = coords[i+1] * grid.w + coords[i];
-        if (j >= grid.voxels.size()) {
-            mapping.clear();
-            ESP_LOGW(TAG, "Attempt to map voxel grid failed, voxel #%d (%d, %d) is out of range. Mapping cleared.", i, coords[i+1], coords[i]);
-            return ESP_FAIL;
-        }
-        mapping[i/2] = &grid.voxels[j];
-    }
+    auto msg = new const voxel::msg::SetGrid({
+        .w = std::move(w),
+        .h = std::move(h)
+    });
+    return queue.push(msg->wrap());
     return ESP_OK;
 }
 
@@ -70,8 +49,8 @@ esp_err_t Driver::add_impulse(data::Impulse impulse, const std::vector<uint16_t>
 /* Internal API */
 
 void Driver::flush() {
-    for (uint16_t i = 0; i < mapping.size(); i++) {
-        ws281x.set(i, mapping[i]->data);
+    for (uint16_t i = 0; i < grid.voxels.size(); i++) {
+        ws281x.set(i, grid.voxels[i].data);
     }
     ws281x.flush();
 }
@@ -101,6 +80,12 @@ void Driver::task() {
     while (1) {
         queue.wait([this](const qb::msg_wrap_t& wrap) {
             switch (wrap.kind) {
+                case voxel::msg_t::SetGrid: {
+                    auto& msg = voxel::msg::SetGrid::unwrap(wrap);
+                    grid = Grid(msg.w, msg.h);
+                    ws281x.resize(msg.w*msg.h);
+                    break;
+                }
                 case voxel::msg_t::AddImpulse: {
                     auto& msg = voxel::msg::AddImpulse::unwrap(wrap);
                     impulses.add(msg.impulse, msg.voxels);
@@ -109,6 +94,7 @@ void Driver::task() {
             }
         });
         impulses.tick();
+        flush();
         vTaskDelay(tick_ms / portTICK_PERIOD_MS);
     }
 }

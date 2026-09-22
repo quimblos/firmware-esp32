@@ -22,11 +22,11 @@ bool impulse::Animation::tick(Driver& driver) {
     for (const auto index: voxels) {
         switch (impulse.channel) {
             case data::ImpulseChannel::R:
-                driver.mapping[index]->data.r = frame; break;
+                driver.grid.voxels[index].data.r = frame; break;
             case data::ImpulseChannel::G:
-                driver.mapping[index]->data.g = frame; break;
+                driver.grid.voxels[index].data.g = frame; break;
             case data::ImpulseChannel::B:
-                driver.mapping[index]->data.b = frame; break;
+                driver.grid.voxels[index].data.b = frame; break;
         }
     }
 
@@ -49,11 +49,11 @@ void impulse::Animation::clear(Driver& driver) {
     for (const auto index: voxels) {
         switch (impulse.channel) {
             case data::ImpulseChannel::R:
-                driver.mapping[index]->data.r = 0; break;
+                driver.grid.voxels[index].data.r = 0; break;
             case data::ImpulseChannel::G:
-                driver.mapping[index]->data.g = 0; break;
+                driver.grid.voxels[index].data.g = 0; break;
             case data::ImpulseChannel::B:
-                driver.mapping[index]->data.b = 0; break;
+                driver.grid.voxels[index].data.b = 0; break;
         }
     }
 }
@@ -61,7 +61,7 @@ void impulse::Animation::clear(Driver& driver) {
 esp_err_t impulse::Animator::add(data::Impulse impulse, const std::vector<uint16_t>& voxels) {
     
     for (const auto& index: voxels) {
-        if (index >= driver.mapping.size()) {
+        if (index >= driver.grid.w*driver.grid.h) {
             ESP_LOGW(Driver::TAG, "Attempt to add impulse animation failed, voxel #%d is out of range. impulse::Animation not added.", index);
             return ESP_FAIL;
         }
@@ -93,6 +93,4 @@ void impulse::Animator::tick() {
         }
         else ++it;
     }
-
-    driver.flush();
 }

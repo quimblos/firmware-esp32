@@ -131,6 +131,12 @@ namespace qb {
                     }
                 }
     
+                void resize(uint16_t pixels) {
+                    this->pixels = pixels;
+                    delete[] this->data;
+                    this->data = new uint8_t[](pixels);
+                }
+
                 void set(uint16_t i, const RGB& color) {
                     data[i*3+0] = color.g;
                     data[i*3+1] = color.r;
