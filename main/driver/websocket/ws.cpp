@@ -23,7 +23,13 @@ static esp_err_t wss_open_fd(httpd_handle_t hd, int sockfd)
 {
     ESP_LOGI(WebSocket::TAG, "New client connected %d", sockfd);
     wss_keep_alive_t h = (wss_keep_alive_t) httpd_get_global_user_ctx(hd);
-    return wss_keep_alive_add_client(h, sockfd);
+    /* Only the keep-alive bookkeeping can fail here (its action queue is shallow).
+     * Returning that error makes the httpd drop the brand-new connection -- silently,
+     * at LOGD level -- so accept the client and merely note the loss of pings. */
+    if (wss_keep_alive_add_client(h, sockfd) != ESP_OK) {
+        ESP_LOGW(WebSocket::TAG, "fd %d not registered with the keep-alive engine", sockfd);
+    }
+    return ESP_OK;
 }
 
 static void wss_close_fd(httpd_handle_t hd, int sockfd)
@@ -159,6 +165,10 @@ httpd_handle_t WebSocket::start_wss_server(void)
     // Prepare keep-alive engine
     wss_keep_alive_config_t keep_alive_config = KEEP_ALIVE_CONFIG_DEFAULT();
     keep_alive_config.max_clients = WebSocket::config.max_clients;
+    /* A missed PONG used to be fatal 10 s after the last one seen, and the engine's
+     * action queue is shallow enough to drop one; it then force-closed a healthy client
+     * via httpd_sess_trigger_close() on a bare fd. Allow a few more ping rounds. */
+    keep_alive_config.not_alive_after_ms = 30000;
     keep_alive_config.client_not_alive_cb = client_not_alive_cb;
     keep_alive_config.check_client_alive_cb = check_client_alive_cb;
     wss_keep_alive_t keep_alive = wss_keep_alive_start(&keep_alive_config);
@@ -178,7 +188,11 @@ httpd_handle_t WebSocket::start_wss_server(void)
      * tick. Keep it below the network stack (lwIP TCP/IP runs at 18), otherwise the
      * extra priority only delays the servicing of the data the server is waiting on. */
     conf.httpd.task_priority = tskIDLE_PRIORITY + 12;
-    conf.httpd.max_open_sockets = WebSocket::config.max_clients;
+    /* The httpd only accept()s while a socket slot is free (lru purge is off, which is
+     * what a websocket server wants), so the pool needs headroom beyond the websocket
+     * clients for handshakes and churned connections -- otherwise the server stops
+     * taking connections entirely until a stale one is reaped. */
+    conf.httpd.max_open_sockets = WebSocket::config.max_clients + 3;
     conf.httpd.global_user_ctx = keep_alive;
     conf.httpd.open_fn = wss_open_fd;
     conf.httpd.close_fn = wss_close_fd;
