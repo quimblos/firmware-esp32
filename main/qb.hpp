@@ -3,9 +3,7 @@
 #include "quimblos/engine.hpp"
 
 #include "driver/system/nvs.hpp"
-#include "driver/system/wifi.hpp"
-#include "driver/system/blufi.hpp"
-#include "driver/websocket/ws.hpp"
+#include "driver/system/jtag.hpp"
 
 #include "quimblos/macro/engine.h"
 #include "voxel/driver.hpp"
@@ -22,9 +20,7 @@ QB_DATA(voxel,
 QB_ENGINE(voxel,
     QB_DRIVERS(
         (qb::driver::NVS, nvs, ()),
-        (qb::driver::WiFi, wifi, (nvs)),
-        (qb::driver::BluFi, blufi, (wifi)),
-        (qb::driver::WebSocket, websocket, (wifi)),
+        (qb::driver::JTAG, jtag, ()),
         (voxel::Driver, voxel, ((gpio_num_t) VOXEL_GPIO, VOXEL_GRID_W, VOXEL_GRID_H))
     ),
     QB_MSG(SetGrid, (

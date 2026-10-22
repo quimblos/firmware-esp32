@@ -1,6 +1,7 @@
 idf_component_register(SRCS "main.cpp"
                             "util/color.cpp"
                             "util/json.cpp"
+                            "driver/system/jtag.cpp"
                             "driver/system/blufi.cpp"
                             "driver/system/blufi_security.cpp"
                             "driver/system/wifi.cpp"
@@ -10,6 +11,6 @@ idf_component_register(SRCS "main.cpp"
                             "voxel/driver.cpp"
                             "voxel/impulse.cpp"
                        INCLUDE_DIRS "."
-                       PRIV_REQUIRES esp_driver_rmt bt nvs_flash mbedtls esp_https_server esp_timer
+                       PRIV_REQUIRES esp_driver_rmt bt nvs_flash mbedtls esp_https_server esp_timer esp_driver_usb_serial_jtag
                        EMBED_TXTFILES "certs/servercert.pem"
                                    "certs/prvtkey.pem")
