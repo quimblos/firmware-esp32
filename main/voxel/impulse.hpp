@@ -9,7 +9,7 @@
 QB_DATA(voxel,
     QB_OBJ(Frame, (
         (val, uint8_t),
-        (dur, uint8_t)
+        (dur, uint16_t)
     )),
     QB_ENUM(ImpulseChannel, ( R, G, B )),
     QB_VEC(data::Frame),
@@ -31,7 +31,7 @@ namespace voxel {
             data::Impulse impulse;
             std::vector<uint16_t> voxels;
             uint8_t t = 0;
-            uint8_t ti = 0;
+            uint16_t ti = 0;
             
             Animation(data::Impulse& impulse, const std::vector<uint16_t>& voxels):
                 impulse(impulse),
@@ -44,7 +44,7 @@ namespace voxel {
     
         class Animator {
             Driver& driver;
-            std::vector<Animation> animations;
+            std::vector<Animation> queue;
     
             public:
     

@@ -31,7 +31,7 @@ bool impulse::Animation::tick(Driver& driver) {
     }
 
     // Advance animation
-    ti++;
+    ti += driver.tick_ms;
     if (ti >= impulse.signal[t].dur) {
         ti = 0;
         t++;
@@ -67,30 +67,17 @@ esp_err_t impulse::Animator::add(data::Impulse impulse, const std::vector<uint16
         }
     }
 
-    // Remove voxels from previous animations if they're used on the new one
-    auto indexes = std::vector<uint16_t>(voxels);
-    std::sort(indexes.begin(), indexes.end());
-    for (auto& anim: animations) {
-        if (anim.impulse.channel != impulse.channel) continue;
-        anim.voxels.erase(
-            std::remove_if(anim.voxels.begin(), anim.voxels.end(),
-                [&indexes](int x) { return std::binary_search(indexes.begin(), indexes.end(), x); }),
-            anim.voxels.end()
-        );
-    }
-
     // Add animation
-    animations.push_back(impulse::Animation(impulse, voxels));
+    queue.push_back(impulse::Animation(impulse, voxels));
     return ESP_OK;
 }
 
 void impulse::Animator::tick() {
-    ESP_LOGD(Driver::TAG, "impulse::Animator tick, animations: %zu", animations.size());
-    std::vector<impulse::Animation>::iterator it = animations.begin();
-    while(it != animations.end()) {
-        if(it->tick(driver)) {
-            it = animations.erase(it);
-        }
-        else ++it;
+    if (queue.size() == 0) return;
+    ESP_LOGD(Driver::TAG, "impulse::Animator tick, queue: %zu", queue.size());
+    std::vector<impulse::Animation>::iterator it = queue.begin();
+    if (it->tick(driver)) {
+        queue.erase(it);
+        if (queue.size() == 0) driver.clear();
     }
 }

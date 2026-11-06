@@ -53,6 +53,12 @@ namespace voxel {
             esp_err_t add_impulse(data::Impulse impulse, const std::vector<uint16_t>& voxels);
 
             void test() { ws281x.test(); }
+            void clear() {
+                for (uint16_t i = 0; i < grid.voxels.size(); i++) {
+                    grid.voxels[i].data = {0,0,0};
+                }
+                flush();
+            }
 
         protected:
 
